@@ -15,7 +15,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 /**
- * @author rgamarra
+ * @author Betto McRose [icarus]
+           mcrose@icarusdb.com.py
  *
  */
 public abstract class ResourceRESTService

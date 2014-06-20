@@ -7,7 +7,8 @@ import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 
 /**
- * @author rgamarra
+ * @author Betto McRose [icarus]
+           mcrose@icarusdb.com.py
  *
  */
 public abstract class BaseController

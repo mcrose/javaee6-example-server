@@ -1,0 +1,71 @@
+.ui-icon-about {
+    background-image:
+        url(#{request.contextPath}/resources/gfx/icons/get_info-16x16.png);
+}
+
+.ui-menuitem-icon.ui-icon.Icon {
+    background: url(../resources/gfx//logof.gif) no-repeat;
+    width: 16px;
+    height: 16px;
+    border-radius: 0px;
+}
+
+.ui-panelgrid tr,.ui-panelgrid td {
+    border: 0 !important;
+}
+
+.combobox {
+    width: 250px;
+    text-align: left;
+}
+
+.required {
+    color: red;
+}
+
+.outputLabel {
+    float: left;
+    font-weight: bold;
+    width: 200px;
+}
+
+.numeric {
+    text-align: right;
+}
+
+.outputTextBox {
+    text-align: left;
+    background: #ffffff;
+    padding-left: 5px;
+    padding-right: 10px;
+    color: #222222;
+    border-radius: 3px;
+    border-color: #778877;
+    box-shadow: inset 0 2px 2px #8f8f8f;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -moz-box-shadow: inset 0 2px 2px #8f8f8f;
+    -webkit-box-shadow: inset 0 2px 2px #8f8f8f;
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled=  false);
+    line-height: 2;
+    vertical-align: bottom, text-bottom;
+    height: 20px;
+    /*
+    ui-inputfield ui-inputtext ui-widget ui-state-default
+    */
+}
+
+.slide-up-boxes {
+    display: block;
+    border: 1px solid #ccc;
+    padding-left: 5px;
+    padding-right: 5px;
+    color: inherit;
+    text-align: left;
+    opacity: 1;
+    height: 20px;
+    vertical-align: text-bottom;
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled=  false);
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+}

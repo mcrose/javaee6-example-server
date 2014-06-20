@@ -1,22 +1,37 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3c.org/1999/xhtml"
     xmlns:h="http://java.sun.com/jsf/html"
-    xmlns:p="http://primefaces.org/ui"
     xmlns:f="http://java.sun.com/jsf/core"
     xmlns:ui="http://java.sun.com/jsf/facelets">
 
     <h:head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <title>Example Server</title>
-        <h:outputStylesheet library="css" name="resources/css/screen.css" />
+        <title>Java EE 6 server-side example</title>
+        <h:outputStylesheet name="css/screen.css" />
     </h:head>
     
     <h:body>
-    
-        <h:panelGrid>
-            <h:panelGroup>Welcome to Example Server Project Page</h:panelGroup>
-        </h:panelGrid>
         
+        <h1>Welcome to Java EE 6 Server Side Example Project Page</h1>
+        
+        <h2>Please, click below for available services</h2>
+        
+        <h:panelGrid id="mainpanel" columns="2">
+        
+            <h:outputLabel for="continentslink" value="Continents" />
+            <h:outputLink id="continentslink" target="_blank" 
+                       value="#{request.contextPath}/services/continents" >
+                       <h:graphicImage width="24" 
+                            url="/resources/gfx/search.png"/>
+            </h:outputLink>
+        
+            <h:outputLink id="countrieslink" target="_blank" 
+                       value="#{request.contextPath}/services/countries" 
+                       title="go!!!" >
+                <h:outputLabel value="Countries" />
+            </h:outputLink>
+                
+        </h:panelGrid>
     </h:body>
 
 </html>
