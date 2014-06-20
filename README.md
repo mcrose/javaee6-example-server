@@ -1,5 +1,12 @@
-javaee6-example-server: Assortment of technologies including Arquillian
-========================
+Java EE 6 server-side example project
+=====================================
+RESTful Service Oriented project
+the only UI is and index page showing some services
+
+This is the pre-generated JBoss documentation
+---------------------------------------------
+
+Assortment of technologies including Arquillian
 Author: Pete Muir
 Level: Intermediate
 Technologies: CDI, JSF, JPA, EJB, JPA, JAX-RS, BV
