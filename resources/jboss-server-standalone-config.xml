@@ -1,0 +1,23 @@
+                <!-- configuration  -->
+                <datasource jta="true" enabled="true" use-java-context="true" use-ccm="true" 
+                      jndi-name="java:jboss/datasources/example-serverDS" 
+                      pool-name="example-serverDS" >
+                    <connection-url>jdbc:postgresql://localhost:5432/postgres</connection-url>
+                    <driver-class>org.postgresql.Driver</driver-class>
+                    <driver>postgresql</driver>
+                    <pool>
+                        <min-pool-size>2</min-pool-size>
+                        <max-pool-size>20</max-pool-size>
+                    </pool>
+                    <security>
+                        <user-name>postgres</user-name>
+                        <password>postgres</password>
+                    </security>
+                    <validation>
+                        <validate-on-match>false</validate-on-match>
+                        <background-validation>false</background-validation>
+                    </validation>
+                    <statement>
+                        <share-prepared-statements>false</share-prepared-statements>
+                    </statement>
+                </datasource>

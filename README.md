@@ -1,4 +1,4 @@
-example-server: Assortment of technologies including Arquillian
+javaee6-example-server: Assortment of technologies including Arquillian
 ========================
 Author: Pete Muir
 Level: Intermediate
