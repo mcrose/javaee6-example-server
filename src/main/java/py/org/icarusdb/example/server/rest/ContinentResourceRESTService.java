@@ -24,7 +24,6 @@ import java.util.Set;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.persistence.NoResultException;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
@@ -68,7 +67,7 @@ public class ContinentResourceRESTService extends ResourceRESTService
     @GET
     @Path("/{id:[0-9][0-9]*}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Continent lookupContinentById(@PathParam("id") long id)
+    public Continent lookupById(@PathParam("id") long id)
     {
         Continent continent = repository.findById(id);
         if (continent == null)
@@ -78,6 +77,19 @@ public class ContinentResourceRESTService extends ResourceRESTService
         return continent;
     }
 
+    @POST
+    @Path("/name")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Continent> lookupByName(String name)
+    {
+        if(name == null || name.isEmpty()) { 
+            return null; // TODO return error code
+        }
+
+        return repository.findByName(name);
+    }
+    
     /**
      * Creates a new continent from the values provided. Performs validation,
      * and will return a JAX-RS response with either 200 ok, or with a map of
@@ -171,15 +183,6 @@ public class ContinentResourceRESTService extends ResourceRESTService
      */
     public boolean nameAlreadyExists(String name)
     {
-        Continent continent = null;
-        try
-        {
-            continent = repository.findByName(name.trim());
-        }
-        catch (NoResultException e)
-        {
-            // ignore
-        }
-        return continent != null;
+        return !repository.findByName(name.trim()).isEmpty();
     }
 }

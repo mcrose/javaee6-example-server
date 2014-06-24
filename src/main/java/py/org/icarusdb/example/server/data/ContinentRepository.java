@@ -40,14 +40,19 @@ public class ContinentRepository
         return em.find(Continent.class, id);
     }
 
-    public Continent findByName(String name)
+    public List<Continent> findByName(String name)
     {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Continent> criteria = cb.createQuery(Continent.class);
         Root<Continent> continent = criteria.from(Continent.class);
-        criteria.select(continent).where(cb.equal(continent.get(Continent_.name), name));
         
-        return em.createQuery(criteria).getSingleResult();
+        criteria
+            .select(continent)
+            .where(
+                    cb.equal(continent.get(Continent_.name), name)
+            );
+        
+        return em.createQuery(criteria).getResultList();
     }
 
     public List<Continent> findAllOrderedByName()
