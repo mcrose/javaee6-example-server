@@ -47,4 +47,16 @@ public class ContinentRegistration
         em.persist(continent);
         continentEventSrc.fire(continent);
     }
+
+    public void update(Continent entity)
+    {
+        entity.setName(entity.getName().trim());
+        
+        log.info("updating " + entity.getName());
+        
+        // TODO store flush mode in a -upper-? class
+        em.merge(entity);
+        em.flush();
+        continentEventSrc.fire(entity);
+    }
 }

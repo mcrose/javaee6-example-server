@@ -92,10 +92,14 @@ public class ContinentResourceRESTService extends ResourceRESTService
     
     /**
      * Creates a new continent from the values provided. Performs validation,
-     * and will return a JAX-RS response with either 200 ok, or with a map of
+     * and will return a JAX-RS response with either 200 OK, or with a map of
      * fields, and related errors.
+     * 
+     * TODO merge create and update methods
+     * 
      */
     @POST
+    @Path("/create")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createContinent(Continent continent)
@@ -185,4 +189,45 @@ public class ContinentResourceRESTService extends ResourceRESTService
     {
         return !repository.findByName(name.trim()).isEmpty();
     }
+    
+    @POST
+    @Path("/update")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response update(Continent entity)
+    {
+
+        Response.ResponseBuilder builder = null;
+
+        try
+        {
+            // Validates continent using bean validation
+            validateContinent(entity);
+
+            registration.update(entity);
+
+            // Create an "ok" response
+            builder = Response.ok();
+        }
+        catch (ConstraintViolationException ce)
+        {
+            // Handle bean validation issues
+            builder = createViolationResponse(ce.getConstraintViolations());
+        }
+        catch (ValidationException e)
+        {
+            // Handle the unique constrain violation
+            Map<String, String> responseObj = new HashMap<String, String>();
+            responseObj.put("name", "name already exists");
+            builder = Response.status(Response.Status.CONFLICT).entity(responseObj);
+        }
+        catch (Exception e)
+        {
+            // Handle generic exceptions
+            builder = super.getBadRequestResponse(e);
+        }
+
+        return builder.build();
+    }
+    
 }
