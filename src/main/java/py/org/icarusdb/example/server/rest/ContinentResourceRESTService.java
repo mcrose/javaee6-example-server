@@ -37,7 +37,9 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import py.org.icarusdb.example.server.converter.ConverterHelper;
 import py.org.icarusdb.example.server.data.ContinentRepository;
+import py.org.icarusdb.example.server.dto.ContinentDTO;
 import py.org.icarusdb.example.server.model.Continent;
 import py.org.icarusdb.example.server.service.ContinentRegistration;
 
@@ -45,7 +47,7 @@ import py.org.icarusdb.example.server.service.ContinentRegistration;
  * JAX-RS Example
  * <p/>
  * This class produces a RESTful service to read/write the contents of the
- * continents table.
+ * continentDTOs table.
  */
 @Path("/continents")
 @RequestScoped
@@ -59,39 +61,39 @@ public class ContinentResourceRESTService extends ResourceRESTService
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Continent> listAllContinents()
+    public List<ContinentDTO> listAllContinentDTOs()
     {
-        return repository.findAllOrderedByName();
+        return ConverterHelper.convertContinentsToDTO(repository.findAllOrderedByName());
     }
 
     @GET
     @Path("/{id:[0-9][0-9]*}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Continent lookupById(@PathParam("id") long id)
+    public ContinentDTO lookupById(@PathParam("id") long id)
     {
         Continent continent = repository.findById(id);
         if (continent == null)
         {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
-        return continent;
+        return new ContinentDTO(continent);
     }
 
     @POST
     @Path("/name")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Continent> lookupByName(String name)
+    public List<ContinentDTO> lookupByName(String name)
     {
         if(name == null || name.isEmpty()) { 
             return null; // TODO return error code
         }
 
-        return repository.findByName(name);
+        return ConverterHelper.convertContinentsToDTO(repository.findByName(name));
     }
     
     /**
-     * Creates a new continent from the values provided. Performs validation,
+     * Creates a new continentDTO from the values provided. Performs validation,
      * and will return a JAX-RS response with either 200 OK, or with a map of
      * fields, and related errors.
      * 
@@ -102,17 +104,17 @@ public class ContinentResourceRESTService extends ResourceRESTService
     @Path("/create")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createContinent(Continent continent)
+    public Response createContinentDTO(ContinentDTO continentDTO)
     {
 
         Response.ResponseBuilder builder = null;
 
         try
         {
-            // Validates continent using bean validation
-            validateContinent(continent);
+            // Validates continentDTO using bean validation
+            validateContinentDTO(continentDTO);
 
-            registration.register(continent);
+            registration.register(continentDTO.toEntity());
 
             // Create an "ok" response
             builder = Response.ok();
@@ -140,28 +142,28 @@ public class ContinentResourceRESTService extends ResourceRESTService
 
     /**
      * <p>
-     * Validates the given Continent variable and throws validation exceptions
+     * Validates the given ContinentDTO variable and throws validation exceptions
      * based on the type of error. If the error is standard bean validation
      * errors then it will throw a ConstraintValidationException with the set of
      * the constraints violated.
      * </p>
      * <p>
-     * If the error is caused because an existing continent with the same name
+     * If the error is caused because an existing continentDTO with the same name
      * is registered it throws a regular validation exception so that it can be
      * interpreted separately.
      * </p>
      * 
-     * @param continent
-     *            Continent to be validated
+     * @param continentDTO
+     *            ContinentDTO to be validated
      * @throws ConstraintViolationException
      *             If Bean Validation errors exist
      * @throws ValidationException
-     *             If continent with the same name already exists
+     *             If continentDTO with the same name already exists
      */
-    private void validateContinent(Continent continent) throws ConstraintViolationException, ValidationException
+    private void validateContinentDTO(ContinentDTO continentDTO) throws ConstraintViolationException, ValidationException
     {
         // Create a bean validator and check for issues.
-        Set<ConstraintViolation<Continent>> violations = validator.validate(continent);
+        Set<ConstraintViolation<ContinentDTO>> violations = validator.validate(continentDTO);
 
         if (!violations.isEmpty())
         {
@@ -169,42 +171,67 @@ public class ContinentResourceRESTService extends ResourceRESTService
         }
 
         // Check the uniqueness of the name address
-        if (nameAlreadyExists(continent.getName()))
+        if (nameAlreadyExists(continentDTO.getName(), continentDTO.getId()))
         {
             throw new ValidationException("Unique Name Violation");
         }
     }
 
     /**
-     * Checks if a continent with the same name address is already registered.
+     * Checks if a continentDTO with the same name address is already registered.
      * This is the only way to easily capture the
-     * "@UniqueConstraint(columnNames = "name")" constraint from the Continent
+     * "@UniqueConstraint(columnNames = "name")" constraint from the ContinentDTO
      * class.
      * 
      * @param name
      *            The name to check
      * @return True if the name already exists, and false otherwise
      */
-    public boolean nameAlreadyExists(String name)
+    public boolean nameAlreadyExists(String name, Long id)
     {
-        return !repository.findByName(name.trim()).isEmpty();
+        List<Continent> continents = repository.findByName(name.trim());
+        
+        if (continents.isEmpty()) return false;
+        
+        for(int index = 0; index < continents.size(); index++)
+        {
+            if(name.trim().equalsIgnoreCase(continents.get(index).getName()))
+            {
+                if(id != null && continents.get(index).getId().longValue() == id.longValue())
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     @POST
     @Path("/update")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response update(Continent entity)
+    public Response update(ContinentDTO dto)
     {
+        if(dto.getId() == null)
+        {
+            return createContinentDTO(dto);
+        }
+        
 
         Response.ResponseBuilder builder = null;
 
         try
         {
-            // Validates continent using bean validation
-            validateContinent(entity);
+            // Validates continentDTO using bean validation
+            validateContinentDTO(dto);
+            
+            Continent continent = repository.findById(dto.getId());
+            continent.setName(dto.getName());
+            continent.setActive(dto.getActive());
 
-            registration.update(entity);
+            registration.update(continent);
 
             // Create an "ok" response
             builder = Response.ok();
