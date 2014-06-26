@@ -19,15 +19,14 @@ package py.org.icarusdb.example.server.service;
 import java.util.logging.Logger;
 
 import javax.ejb.Stateless;
-import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 
-import py.org.icarusdb.example.server.model.Continent;
+import py.org.icarusdb.example.server.model.State;
 
 // The @Stateless annotation eliminates the need for manual transaction demarcation
 @Stateless
-public class ContinentRegistration
+public class StateManager
 {
 
     @Inject
@@ -36,27 +35,15 @@ public class ContinentRegistration
     @Inject
     private EntityManager em;
 
-    @Inject
-    private Event<Continent> continentEventSrc;
+//    @Inject
+//    private Event<State> stateEventSrc;
 
-    public void register(Continent continent) throws Exception
+    public void register(State state) throws Exception
     {
-        continent.setName(continent.getName().trim());
+        state.setName(state.getName().trim());
         
-        log.info("Persisting " + continent.getName());
-        em.persist(continent);
-        continentEventSrc.fire(continent);
-    }
-
-    public void update(Continent entity)
-    {
-        entity.setName(entity.getName().trim());
-        
-        log.info("updating " + entity.getName());
-        
-        // TODO store flush mode in a -upper-? class
-        em.merge(entity);
-        em.flush();
-        continentEventSrc.fire(entity);
+        log.info("Persisting " + state.getName());
+        em.persist(state);
+//        stateEventSrc.fire(state);
     }
 }

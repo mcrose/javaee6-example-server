@@ -32,7 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import py.org.icarusdb.example.server.model.Continent;
-import py.org.icarusdb.example.server.service.ContinentRegistration;
+import py.org.icarusdb.example.server.service.ContinentManager;
 import py.org.icarusdb.example.server.util.Resources;
 
 @RunWith(Arquillian.class)
@@ -42,7 +42,7 @@ public class ContinentRegistrationTest
     public static Archive<?> createTestArchive()
     {
         return ShrinkWrap.create(WebArchive.class, "test.war")
-                            .addClasses(Continent.class, ContinentRegistration.class, Resources.class)
+                            .addClasses(Continent.class, ContinentManager.class, Resources.class)
                             .addAsResource("META-INF/test-persistence.xml", "META-INF/persistence.xml")
                             .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
                             // Deploy our test datasource
@@ -50,7 +50,7 @@ public class ContinentRegistrationTest
     }
 
     @Inject
-    ContinentRegistration continentRegistration;
+    ContinentManager continentManager;
 
     @Inject
     Logger log;
@@ -60,7 +60,7 @@ public class ContinentRegistrationTest
     {
         Continent newContinent = new Continent();
         newContinent.setName("Jane Doe");
-        continentRegistration.register(newContinent);
+        continentManager.register(newContinent);
 
         assertNotNull(newContinent.getId());
         log.info(newContinent.getName() + " was persisted with id " + newContinent.getId());

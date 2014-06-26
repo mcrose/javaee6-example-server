@@ -40,7 +40,7 @@ import javax.ws.rs.core.Response;
 
 import py.org.icarusdb.example.server.data.CountryRepository;
 import py.org.icarusdb.example.server.model.Country;
-import py.org.icarusdb.example.server.service.CountryRegistration;
+import py.org.icarusdb.example.server.service.CountryManager;
 
 /**
  * JAX-RS Example
@@ -56,7 +56,7 @@ public class CountryResourceRESTService extends ResourceRESTService
     private CountryRepository repository;
 
     @Inject
-    CountryRegistration registration;
+    CountryManager registration;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

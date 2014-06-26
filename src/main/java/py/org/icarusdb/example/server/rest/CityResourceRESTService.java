@@ -40,7 +40,7 @@ import javax.ws.rs.core.Response;
 
 import py.org.icarusdb.example.server.data.CityRepository;
 import py.org.icarusdb.example.server.model.City;
-import py.org.icarusdb.example.server.service.CityRegistration;
+import py.org.icarusdb.example.server.service.CityManager;
 
 /**
  * JAX-RS Example
@@ -56,7 +56,7 @@ public class CityResourceRESTService extends ResourceRESTService
     private CityRepository repository;
 
     @Inject
-    CityRegistration registration;
+    CityManager registration;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

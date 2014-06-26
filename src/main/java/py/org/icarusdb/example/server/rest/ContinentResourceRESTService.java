@@ -41,7 +41,7 @@ import py.org.icarusdb.example.server.converter.ConverterHelper;
 import py.org.icarusdb.example.server.data.ContinentRepository;
 import py.org.icarusdb.example.server.dto.ContinentDTO;
 import py.org.icarusdb.example.server.model.Continent;
-import py.org.icarusdb.example.server.service.ContinentRegistration;
+import py.org.icarusdb.example.server.service.ContinentManager;
 
 /**
  * JAX-RS Example
@@ -57,7 +57,7 @@ public class ContinentResourceRESTService extends ResourceRESTService
     private ContinentRepository repository;
 
     @Inject
-    ContinentRegistration registration;
+    ContinentManager registration;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

@@ -24,7 +24,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import py.org.icarusdb.example.server.model.Continent;
-import py.org.icarusdb.example.server.service.ContinentRegistration;
+import py.org.icarusdb.example.server.service.ContinentManager;
 
 // The @Model stereotype is a convenience mechanism to make this a request-scoped bean 
 // that has an EL name
@@ -34,7 +34,7 @@ import py.org.icarusdb.example.server.service.ContinentRegistration;
 public class ContinentController extends BaseController
 {
     @Inject
-    private ContinentRegistration continentRegistration;
+    private ContinentManager continentManager;
 
     @Produces
     @Named
@@ -50,7 +50,7 @@ public class ContinentController extends BaseController
     {
         try
         {
-            continentRegistration.register(newContinent);
+            continentManager.register(newContinent);
             FacesMessage m = new FacesMessage(FacesMessage.SEVERITY_INFO, "Persisted!", "Successfully saved");
             facesContext.addMessage(null, m);
             initNewContinent();

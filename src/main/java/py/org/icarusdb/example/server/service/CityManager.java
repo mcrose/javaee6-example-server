@@ -22,11 +22,11 @@ import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 
-import py.org.icarusdb.example.server.model.Country;
+import py.org.icarusdb.example.server.model.City;
 
 // The @Stateless annotation eliminates the need for manual transaction demarcation
 @Stateless
-public class CountryRegistration
+public class CityManager
 {
 
     @Inject
@@ -36,14 +36,14 @@ public class CountryRegistration
     private EntityManager em;
 
 //    @Inject
-//    private Event<Country> countryEventSrc;
+//    private Event<City> cityEventSrc;
 
-    public void register(Country country) throws Exception
+    public void register(City city) throws Exception
     {
-        country.setName(country.getName().trim());
+        city.setName(city.getName().trim());
         
-        log.info("Persisting " + country.getName());
-        em.persist(country);
-//        countryEventSrc.fire(country);
+        log.info("Persisting " + city.getName());
+        em.persist(city);
+//        cityEventSrc.fire(city);
     }
 }

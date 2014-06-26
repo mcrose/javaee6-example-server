@@ -40,7 +40,7 @@ import javax.ws.rs.core.Response;
 
 import py.org.icarusdb.example.server.data.StateRepository;
 import py.org.icarusdb.example.server.model.State;
-import py.org.icarusdb.example.server.service.StateRegistration;
+import py.org.icarusdb.example.server.service.StateManager;
 
 /**
  * JAX-RS Example
@@ -56,7 +56,7 @@ public class StateResourceRESTService extends ResourceRESTService
     private StateRepository repository;
 
     @Inject
-    StateRegistration registration;
+    StateManager registration;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
