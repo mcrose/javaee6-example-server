@@ -16,15 +16,12 @@
  */
 package py.org.icarusdb.example.server.rest;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.persistence.NoResultException;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
@@ -41,6 +38,7 @@ import javax.ws.rs.core.Response;
 import py.org.icarusdb.example.server.data.CountryRepository;
 import py.org.icarusdb.example.server.model.Country;
 import py.org.icarusdb.example.server.service.CountryManager;
+import py.org.icarusdb.util.AppHelper;
 
 /**
  * JAX-RS Example
@@ -56,7 +54,7 @@ public class CountryResourceRESTService extends ResourceRESTService
     private CountryRepository repository;
 
     @Inject
-    CountryManager registration;
+    CountryManager manager;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -80,13 +78,14 @@ public class CountryResourceRESTService extends ResourceRESTService
 
     /**
      * Creates a new Country from the values provided. Performs validation,
-     * and will return a JAX-RS response with either 200 ok, or with a map of
+     * and will return a JAX-RS response with either 200 OK, or with a map of
      * fields, and related errors.
      */
     @POST
+    @Path("/save")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createCountry(Country country)
+    public Response saveCountry(Country entity)
     {
 
         Response.ResponseBuilder builder = null;
@@ -94,24 +93,24 @@ public class CountryResourceRESTService extends ResourceRESTService
         try
         {
             // Validates Country using bean validation
-            validateCountry(country);
+            validateCountry(entity);
 
-            registration.register(country);
+            manager.persist(entity);
 
-            // Create an "ok" response
-            builder = Response.ok();
+            // Create an "OK" response
+            builder = Response.ok().entity(entity);
         }
         catch (ConstraintViolationException ce)
         {
             // Handle bean validation issues
-            builder = createViolationResponse(ce.getConstraintViolations());
+            builder = constraintViolationResponse(ce.getConstraintViolations());
         }
         catch (ValidationException e)
         {
             // Handle the unique constrain violation
-            Map<String, String> responseObj = new HashMap<String, String>();
-            responseObj.put("name", "name already exists");
-            builder = Response.status(Response.Status.CONFLICT).entity(responseObj);
+            String key = AppHelper.getBundleMessage("label.country.name");
+            String value =  AppHelper.getBundleMessage("error.already.exists");
+            builder = super.uniqueValidationViolationResponse(key, key+" "+value);
         }
         catch (Exception e)
         {
@@ -135,17 +134,17 @@ public class CountryResourceRESTService extends ResourceRESTService
      * interpreted separately.
      * </p>
      * 
-     * @param country
+     * @param entity
      *            Country to be validated
      * @throws ConstraintViolationException
      *             If Bean Validation errors exist
      * @throws ValidationException
      *             If Country with the same name already exists
      */
-    private void validateCountry(Country country) throws ConstraintViolationException, ValidationException
+    private void validateCountry(Country entity) throws ConstraintViolationException, ValidationException
     {
         // Create a bean validator and check for issues.
-        Set<ConstraintViolation<Country>> violations = validator.validate(country);
+        Set<ConstraintViolation<Country>> violations = validator.validate(entity);
 
         if (!violations.isEmpty())
         {
@@ -153,7 +152,7 @@ public class CountryResourceRESTService extends ResourceRESTService
         }
 
         // Check the uniqueness of the name address
-        if (nameAlreadyExists(country.getName()))
+        if (nameAlreadyExists(entity.getName(), entity.getId()))
         {
             throw new ValidationException("Unique Name Violation");
         }
@@ -169,17 +168,24 @@ public class CountryResourceRESTService extends ResourceRESTService
      *            The name to check
      * @return True if the name already exists, and false otherwise
      */
-    public boolean nameAlreadyExists(String name)
+    public boolean nameAlreadyExists(String name, Long id)
     {
-        Country country = null;
-        try
+        List<Country> countries = repository.findByName(name.trim());
+        
+        if (countries.isEmpty()) return false;
+        
+        for(int index = 0; index < countries.size(); index++)
         {
-            country = repository.findByName(name.trim());
+            if(name.trim().equalsIgnoreCase(countries.get(index).getName()))
+            {
+                if(id != null && countries.get(index).getId().longValue() == id.longValue())
+                {
+                    return false;
+                }
+                return true;
+            }
         }
-        catch (NoResultException e)
-        {
-            // ignore
-        }
-        return country != null;
+        
+        return false;
     }
 }

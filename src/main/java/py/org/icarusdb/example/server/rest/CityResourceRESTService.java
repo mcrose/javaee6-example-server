@@ -104,7 +104,7 @@ public class CityResourceRESTService extends ResourceRESTService
         catch (ConstraintViolationException ce)
         {
             // Handle bean validation issues
-            builder = createViolationResponse(ce.getConstraintViolations());
+            builder = constraintViolationResponse(ce.getConstraintViolations());
         }
         catch (ValidationException e)
         {

@@ -35,15 +35,23 @@ public class CountryManager
     @Inject
     private EntityManager em;
 
-//    @Inject
-//    private Event<Country> countryEventSrc;
-
-    public void register(Country country) throws Exception
+    public void persist(Country entity) throws Exception
     {
-        country.setName(country.getName().trim());
+        entity.setName(entity.getName().trim());
         
-        log.info("Persisting " + country.getName());
-        em.persist(country);
-//        countryEventSrc.fire(country);
+        log.info("Persisting " + entity.getName());
+        em.persist(entity);
     }
+    
+    public void update(Country entity)
+    {
+        entity.setName(entity.getName().trim());
+        
+        log.info("updating " + entity.getName());
+        
+        // TODO store flush mode in a [upper?] class
+        em.merge(entity);
+        em.flush();
+    }
+    
 }

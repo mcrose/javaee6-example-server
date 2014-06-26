@@ -40,14 +40,21 @@ public class CountryRepository
         return em.find(Country.class, id);
     }
 
-    public Country findByName(String name)
+    public List<Country> findByName(String name)
     {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Country> criteria = cb.createQuery(Country.class);
         Root<Country> country = criteria.from(Country.class);
-        criteria.select(country).where(cb.equal(country.get(Country_.name), name));
+        criteria
+            .select(country)
+            .where(
+                    cb.equal(country.get(Country_.name), name)
+            )
+            .orderBy(
+                    cb.asc(country.get(Country_.name))
+            );
         
-        return em.createQuery(criteria).getSingleResult();
+        return em.createQuery(criteria).getResultList();
     }
 
     public List<Country> findAllOrderedByName()
