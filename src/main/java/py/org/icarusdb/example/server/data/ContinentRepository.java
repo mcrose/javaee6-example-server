@@ -18,7 +18,7 @@ package py.org.icarusdb.example.server.data;
 
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -28,7 +28,8 @@ import javax.persistence.criteria.Root;
 import py.org.icarusdb.example.server.model.Continent;
 import py.org.icarusdb.example.server.model.Continent_;
 
-@ApplicationScoped
+//@ApplicationScoped
+@RequestScoped
 public class ContinentRepository
 {
 
@@ -50,6 +51,21 @@ public class ContinentRepository
             .select(continent)
             .where(
                     cb.equal(continent.get(Continent_.name), name)
+            );
+        
+        return em.createQuery(criteria).getResultList();
+    }
+
+    public List<Continent> findActives()
+    {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Continent> criteria = cb.createQuery(Continent.class);
+        Root<Continent> continent = criteria.from(Continent.class);
+        
+        criteria
+            .select(continent)
+            .where(
+                    cb.equal(continent.get(Continent_.active), Boolean.TRUE)
             );
         
         return em.createQuery(criteria).getResultList();

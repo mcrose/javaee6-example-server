@@ -85,7 +85,7 @@ public class CountryResourceRESTService extends ResourceRESTService
     @Path("/save")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response saveCountry(Country entity)
+    public Response save(Country entity)
     {
 
         Response.ResponseBuilder builder = null;
@@ -98,7 +98,7 @@ public class CountryResourceRESTService extends ResourceRESTService
             manager.persist(entity);
 
             // Create an "OK" response
-            builder = Response.ok().entity(entity);
+            builder = Response.ok();//.entity(entity);
         }
         catch (ConstraintViolationException ce)
         {

@@ -67,6 +67,14 @@ public class ContinentResourceRESTService extends ResourceRESTService
     }
 
     @GET
+    @Path("/actives")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ContinentDTO> listAllActiveContinentDTOs()
+    {
+        return ConverterHelper.convertContinentsToDTO(repository.findActives());
+    }
+
+    @GET
     @Path("/{id:[0-9][0-9]*}")
     @Produces(MediaType.APPLICATION_JSON)
     public ContinentDTO lookupById(@PathParam("id") long id)
