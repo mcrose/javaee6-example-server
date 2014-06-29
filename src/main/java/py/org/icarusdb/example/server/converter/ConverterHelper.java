@@ -21,8 +21,14 @@ package py.org.icarusdb.example.server.converter;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+
 import py.org.icarusdb.example.server.dto.ContinentDTO;
+import py.org.icarusdb.example.server.dto.CountryDTO;
 import py.org.icarusdb.example.server.model.Continent;
+import py.org.icarusdb.example.server.model.Country;
 
 /**
  * @author Betto McRose [icarus]
@@ -30,16 +36,31 @@ import py.org.icarusdb.example.server.model.Continent;
  *         mcrose.dev@gmail.com
  *
  */
+@Stateless
 public class ConverterHelper
 {
+    @Inject
+    private EntityManager em;
 
-    public static List<ContinentDTO> convertContinentsToDTO(List<Continent> entities)
+
+    public List<ContinentDTO> convertContinentsToDTO(List<Continent> entities)
     {
         List<ContinentDTO> dtos = new LinkedList<ContinentDTO>();
         
         for(int index=0; index < entities.size(); index++)
         {
             dtos.add(new ContinentDTO(entities.get(index)));
+        }
+        return dtos;
+    }
+
+    public List<CountryDTO> convertCountriesToDTO(List<Country> entities)
+    {
+        List<CountryDTO> dtos = new LinkedList<CountryDTO>();
+        
+        for(int index=0; index < entities.size(); index++)
+        {
+            dtos.add(new CountryDTO(em.merge(entities.get(index))));
         }
         return dtos;
     }

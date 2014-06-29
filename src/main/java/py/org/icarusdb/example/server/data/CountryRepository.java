@@ -18,7 +18,7 @@ package py.org.icarusdb.example.server.data;
 
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -28,7 +28,7 @@ import javax.persistence.criteria.Root;
 import py.org.icarusdb.example.server.model.Country;
 import py.org.icarusdb.example.server.model.Country_;
 
-@ApplicationScoped
+@RequestScoped
 public class CountryRepository
 {
 

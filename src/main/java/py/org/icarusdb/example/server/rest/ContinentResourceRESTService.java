@@ -16,6 +16,7 @@
  */
 package py.org.icarusdb.example.server.rest;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -59,11 +60,14 @@ public class ContinentResourceRESTService extends ResourceRESTService
     @Inject
     ContinentManager registration;
 
+    @Inject
+    ConverterHelper dtoConverter;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<ContinentDTO> listAllContinentDTOs()
     {
-        return ConverterHelper.convertContinentsToDTO(repository.findAllOrderedByName());
+        return dtoConverter.convertContinentsToDTO(repository.findAllOrderedByName());
     }
 
     @GET
@@ -71,7 +75,7 @@ public class ContinentResourceRESTService extends ResourceRESTService
     @Produces(MediaType.APPLICATION_JSON)
     public List<ContinentDTO> listAllActiveContinentDTOs()
     {
-        return ConverterHelper.convertContinentsToDTO(repository.findActives());
+        return dtoConverter.convertContinentsToDTO(repository.findActives());
     }
 
     @GET
@@ -97,7 +101,7 @@ public class ContinentResourceRESTService extends ResourceRESTService
             return null; // TODO return error code
         }
 
-        return ConverterHelper.convertContinentsToDTO(repository.findByName(name));
+        return dtoConverter.convertContinentsToDTO(repository.findByName(name));
     }
     
     /**
@@ -122,10 +126,10 @@ public class ContinentResourceRESTService extends ResourceRESTService
             // Validates continentDTO using bean validation
             validateContinentDTO(continentDTO);
 
-            registration.register(continentDTO.toEntity());
+            Serializable id = registration.register(continentDTO.toEntity());
 
             // Create an "ok" response
-            builder = Response.ok();
+            builder = Response.ok().entity(id);
         }
         catch (ConstraintViolationException ce)
         {
@@ -170,6 +174,7 @@ public class ContinentResourceRESTService extends ResourceRESTService
      */
     private void validateContinentDTO(ContinentDTO continentDTO) throws ConstraintViolationException, ValidationException
     {
+        // FIXME is this really working ???
         // Create a bean validator and check for issues.
         Set<ConstraintViolation<ContinentDTO>> violations = validator.validate(continentDTO);
 

@@ -16,6 +16,7 @@
  */
 package py.org.icarusdb.example.server.service;
 
+import java.io.Serializable;
 import java.util.logging.Logger;
 
 import javax.ejb.Stateless;
@@ -39,16 +40,18 @@ public class ContinentManager
     @Inject
     private Event<Continent> continentEventSrc;
 
-    public void register(Continent continent) throws Exception
+    public Serializable register(Continent continent) throws Exception
     {
         continent.setName(continent.getName().trim());
         
         log.info("Persisting " + continent.getName());
         em.persist(continent);
         continentEventSrc.fire(continent);
+        
+        return continent.getId();
     }
 
-    public void update(Continent entity)
+    public void update(Continent entity) throws Exception
     {
         entity.setName(entity.getName().trim());
         

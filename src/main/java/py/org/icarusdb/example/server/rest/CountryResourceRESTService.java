@@ -35,7 +35,9 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import py.org.icarusdb.example.server.converter.ConverterHelper;
 import py.org.icarusdb.example.server.data.CountryRepository;
+import py.org.icarusdb.example.server.dto.CountryDTO;
 import py.org.icarusdb.example.server.model.Country;
 import py.org.icarusdb.example.server.service.CountryManager;
 import py.org.icarusdb.util.AppHelper;
@@ -56,11 +58,14 @@ public class CountryResourceRESTService extends ResourceRESTService
     @Inject
     CountryManager manager;
 
+    @Inject
+    ConverterHelper dtoConverter;
+    
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Country> listAllCountries()
+    public List<CountryDTO> listAllCountries()
     {
-        return repository.findAllOrderedByName();
+        return dtoConverter.convertCountriesToDTO(repository.findAllOrderedByName());
     }
 
     @GET
@@ -85,7 +90,7 @@ public class CountryResourceRESTService extends ResourceRESTService
     @Path("/save")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response save(Country entity)
+    public Response save(CountryDTO dto)
     {
 
         Response.ResponseBuilder builder = null;
@@ -93,12 +98,12 @@ public class CountryResourceRESTService extends ResourceRESTService
         try
         {
             // Validates Country using bean validation
-            validateCountry(entity);
+            validateCountryDTO(dto);
 
-            manager.persist(entity);
+            Country entity = manager.save(dto.toEntity());
 
             // Create an "OK" response
-            builder = Response.ok();//.entity(entity);
+            builder = Response.ok().entity(new CountryDTO(entity));
         }
         catch (ConstraintViolationException ce)
         {
@@ -134,17 +139,18 @@ public class CountryResourceRESTService extends ResourceRESTService
      * interpreted separately.
      * </p>
      * 
-     * @param entity
+     * @param dto
      *            Country to be validated
      * @throws ConstraintViolationException
      *             If Bean Validation errors exist
      * @throws ValidationException
      *             If Country with the same name already exists
      */
-    private void validateCountry(Country entity) throws ConstraintViolationException, ValidationException
+    private void validateCountryDTO(CountryDTO dto) throws ConstraintViolationException, ValidationException
     {
+        // FIXME is this really working ???
         // Create a bean validator and check for issues.
-        Set<ConstraintViolation<Country>> violations = validator.validate(entity);
+        Set<ConstraintViolation<CountryDTO>> violations = validator.validate(dto);
 
         if (!violations.isEmpty())
         {
@@ -152,7 +158,7 @@ public class CountryResourceRESTService extends ResourceRESTService
         }
 
         // Check the uniqueness of the name address
-        if (nameAlreadyExists(entity.getName(), entity.getId()))
+        if (nameAlreadyExists(dto.getName(), dto.getId()))
         {
             throw new ValidationException("Unique Name Violation");
         }
@@ -170,15 +176,15 @@ public class CountryResourceRESTService extends ResourceRESTService
      */
     public boolean nameAlreadyExists(String name, Long id)
     {
-        List<Country> countries = repository.findByName(name.trim());
+        List<Country> entities = repository.findByName(name.trim());
         
-        if (countries.isEmpty()) return false;
+        if (entities.isEmpty()) return false;
         
-        for(int index = 0; index < countries.size(); index++)
+        for(int index = 0; index < entities.size(); index++)
         {
-            if(name.trim().equalsIgnoreCase(countries.get(index).getName()))
+            if(name.trim().equalsIgnoreCase(entities.get(index).getName()))
             {
-                if(id != null && countries.get(index).getId().longValue() == id.longValue())
+                if(id != null && entities.get(index).getId().longValue() == id.longValue())
                 {
                     return false;
                 }
@@ -188,4 +194,38 @@ public class CountryResourceRESTService extends ResourceRESTService
         
         return false;
     }
+    
+    
+    @POST
+    @Path("/remove")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response delete(CountryDTO dto)
+    {
+
+        Response.ResponseBuilder builder = null;
+
+        try
+        {
+            manager.remove(dto.toEntity());
+
+            // Create an "OK" response
+            builder = Response.ok();
+        }
+        // TODO handle cascade exception
+//        catch (ConstraintViolationException ce)
+//        {
+//            // Handle bean validation issues
+//            builder = constraintViolationResponse(ce.getConstraintViolations());
+//        }
+        catch (Exception e)
+        {
+            // Handle generic exceptions
+            builder = super.getBadRequestResponse(e);
+        }
+
+        return builder.build();
+    }
+    
+    
 }

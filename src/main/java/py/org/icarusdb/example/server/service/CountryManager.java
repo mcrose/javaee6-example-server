@@ -16,6 +16,7 @@
  */
 package py.org.icarusdb.example.server.service;
 
+import java.io.Serializable;
 import java.util.logging.Logger;
 
 import javax.ejb.Stateless;
@@ -35,15 +36,17 @@ public class CountryManager
     @Inject
     private EntityManager em;
 
-    public void persist(Country entity) throws Exception
+    public Serializable persist(Country entity) throws Exception
     {
         entity.setName(entity.getName().trim());
         
         log.info("Persisting " + entity.getName());
         em.persist(entity);
+        
+        return entity.getId();
     }
     
-    public void update(Country entity)
+    public Country update(Country entity) throws Exception
     {
         entity.setName(entity.getName().trim());
         
@@ -51,7 +54,27 @@ public class CountryManager
         
         // TODO store flush mode in a [upper?] class
         em.merge(entity);
-        em.flush();
+        //em.flush();
+        
+        return entity;
+    }
+
+    public Country save(Country entity) throws Exception
+    {
+        if(entity.getId() == null) {
+            Serializable id = persist(entity);
+            return em.find(Country.class, id);
+        } else {
+            return update(entity);
+        }
+        
+    }
+
+    public String remove(Country entity) throws Exception
+    {
+        em.remove(em.find(Country.class, entity.getId()));
+        
+        return "removed";
     }
     
 }

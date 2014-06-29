@@ -18,7 +18,7 @@
  */
 package py.org.icarusdb.example.server.dto;
 
-import py.org.icarusdb.example.server.model.Continent;
+import py.org.icarusdb.example.server.model.Country;
 
 /**
  * @author Betto McRose [icarus]
@@ -26,21 +26,24 @@ import py.org.icarusdb.example.server.model.Continent;
  *         mcrose.dev@gmail.com
  *
  */
-public class ContinentDTO
+public class CountryDTO
 {
+    
     private Long id;
+    private ContinentDTO continentDTO;
     private String name;
     private Boolean active;
-    // TODO check for hibernate solutions on relations
-//    private Set<Country> countries = new HashSet<Country>(0);
+//    private Set<State> states = new HashSet<State>(0);
+
+    public CountryDTO(){ }
     
-    public ContinentDTO(){ }
-    
-    public ContinentDTO(Continent entity)
+    public CountryDTO(Country entity)
     {
         this.id = entity.getId();
         this.name = entity.getName();
         this.active = entity.getActive();
+        /* Continent is a NOT NULL so we don't check for null vales */
+        this.continentDTO = new ContinentDTO(entity.getContinent());
     }
     
     
@@ -53,6 +56,16 @@ public class ContinentDTO
     public void setId(Long id)
     {
         this.id = id;
+    }
+
+    public ContinentDTO getContinentDTO()
+    {
+        return this.continentDTO;
+    }
+
+    public void setContinentDTO(ContinentDTO continent)
+    {
+        this.continentDTO = continent;
     }
 
     public String getName()
@@ -79,24 +92,26 @@ public class ContinentDTO
      * only for newly entities
      * @return
      */
-    public Continent toEntity()
+    public Country toEntity()
     {
-        Continent entity = new Continent();
+        Country entity = new Country();
         entity.setId(this.getId());
         entity.setName(this.getName());
         entity.setActive(this.getActive());
         
+        entity.setContinent(this.getContinentDTO().toEntity());
+        
         return entity;
     }
 
-//    public Set<Country> getCountries()
+//    public Set<State> getStates()
 //    {
-//        return this.countries;
+//        return this.states;
 //    }
 //
-//    public void setCountries(Set<Country> countrieses)
+//    public void setStates(Set<State> stateses)
 //    {
-//        this.countries = countrieses;
+//        this.states = stateses;
 //    }
 
 }
