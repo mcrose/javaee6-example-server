@@ -34,7 +34,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.xml.bind.JAXBException;
 
+import py.org.icarusdb.commons.util.IDBProperties;
 import py.org.icarusdb.example.server.converter.ConverterHelper;
 import py.org.icarusdb.example.server.data.CountryRepository;
 import py.org.icarusdb.example.server.dto.CountryDTO;
@@ -61,6 +63,18 @@ public class CountryResourceRESTService extends ResourceRESTService
     @Inject
     ConverterHelper dtoConverter;
     
+    
+    /**
+     * FIXME method call added to test lazy exceptions 
+     */
+    @GET
+    @Path("/all")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Country> list()
+    {
+        return repository.findAllOrderedByName();
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<CountryDTO> listAllCountries()
@@ -79,6 +93,33 @@ public class CountryResourceRESTService extends ResourceRESTService
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
         return country;
+    }
+
+    @POST
+    @Path("/search")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<CountryDTO> search(IDBProperties parameters)
+    {
+        if(parameters == null || parameters.isEmpty())
+        {
+            // FIXME throw the correct exception
+            // TODO create exception
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
+        
+        try
+        {
+            return dtoConverter.convertCountriesToDTO(repository.find(parameters));
+        }
+        catch (JAXBException e)
+        {
+            e.printStackTrace();
+            // FIXME throw the correct exception
+            // TODO create exception
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
+        
     }
 
     /**
