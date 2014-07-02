@@ -16,15 +16,12 @@
  */
 package py.org.icarusdb.example.server.rest;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.persistence.NoResultException;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
@@ -38,9 +35,13 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import py.org.icarusdb.commons.util.IDBProperties;
+import py.org.icarusdb.example.server.converter.ConverterHelper;
 import py.org.icarusdb.example.server.data.StateRepository;
+import py.org.icarusdb.example.server.dto.StateDTO;
 import py.org.icarusdb.example.server.model.State;
 import py.org.icarusdb.example.server.service.StateManager;
+import py.org.icarusdb.util.AppHelper;
 
 /**
  * JAX-RS Example
@@ -56,13 +57,17 @@ public class StateResourceRESTService extends ResourceRESTService
     private StateRepository repository;
 
     @Inject
-    StateManager registration;
+    StateManager manager;
 
+    @Inject
+    ConverterHelper dtoConverter;
+
+    
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<State> listAllCountries()
+    public List<StateDTO> listAllCountries()
     {
-        return repository.findAllOrderedByName();
+        return dtoConverter.convertStatesToDTO(repository.findAllOrderedByName());
     }
 
     @GET
@@ -78,15 +83,43 @@ public class StateResourceRESTService extends ResourceRESTService
         return state;
     }
 
+    @POST
+    @Path("/search")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<StateDTO> search(IDBProperties parameters)
+    {
+        if(parameters == null || parameters.isEmpty())
+        {
+            // FIXME throw the correct exception
+            // TODO create exception
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
+        
+        try
+        {
+            return dtoConverter.convertStatesToDTO(repository.find(parameters));
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            // FIXME throw the correct exception
+            // TODO create exception
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
+        
+    }
+
     /**
      * Creates a new State from the values provided. Performs validation,
      * and will return a JAX-RS response with either 200 ok, or with a map of
      * fields, and related errors.
      */
     @POST
+    @Path("/save")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createState(State state)
+    public Response save(StateDTO dto)
     {
 
         Response.ResponseBuilder builder = null;
@@ -94,12 +127,12 @@ public class StateResourceRESTService extends ResourceRESTService
         try
         {
             // Validates State using bean validation
-            validateState(state);
+            validateStateDTO(dto);
 
-            registration.register(state);
+            State entity = manager.save(dto.toEntity());
 
             // Create an "ok" response
-            builder = Response.ok();
+            builder = Response.ok().entity(new StateDTO(entity));
         }
         catch (ConstraintViolationException ce)
         {
@@ -109,9 +142,9 @@ public class StateResourceRESTService extends ResourceRESTService
         catch (ValidationException e)
         {
             // Handle the unique constrain violation
-            Map<String, String> responseObj = new HashMap<String, String>();
-            responseObj.put("name", "name already exists");
-            builder = Response.status(Response.Status.CONFLICT).entity(responseObj);
+            String key = AppHelper.getBundleMessage("label.country.name");
+            String value =  AppHelper.getBundleMessage("error.already.exists");
+            builder = super.uniqueValidationViolationResponse(key, key+" "+value);
         }
         catch (Exception e)
         {
@@ -135,17 +168,19 @@ public class StateResourceRESTService extends ResourceRESTService
      * interpreted separately.
      * </p>
      * 
-     * @param state
+     * @param dto
      *            State to be validated
      * @throws ConstraintViolationException
      *             If Bean Validation errors exist
      * @throws ValidationException
      *             If State with the same name already exists
      */
-    private void validateState(State state) throws ConstraintViolationException, ValidationException
+    private void validateStateDTO(StateDTO dto) throws ConstraintViolationException, ValidationException
     {
+        // FIXME is this really working ???
         // Create a bean validator and check for issues.
-        Set<ConstraintViolation<State>> violations = validator.validate(state);
+        // Create a bean validator and check for issues.
+        Set<ConstraintViolation<StateDTO>> violations = validator.validate(dto);
 
         if (!violations.isEmpty())
         {
@@ -153,7 +188,7 @@ public class StateResourceRESTService extends ResourceRESTService
         }
 
         // Check the uniqueness of the name address
-        if (nameAlreadyExists(state.getName()))
+        if (nameAlreadyExists(dto.getName(), dto.getId()))
         {
             throw new ValidationException("Unique Name Violation");
         }
@@ -169,17 +204,24 @@ public class StateResourceRESTService extends ResourceRESTService
      *            The name to check
      * @return True if the name already exists, and false otherwise
      */
-    public boolean nameAlreadyExists(String name)
+    public boolean nameAlreadyExists(String name, Long id)
     {
-        State state = null;
-        try
+        List<State> entities = repository.findByName(name.trim());
+        
+        if (entities.isEmpty()) return false;
+        
+        for(int index = 0; index < entities.size(); index++)
         {
-            state = repository.findByName(name.trim());
+            if(name.trim().equalsIgnoreCase(entities.get(index).getName()))
+            {
+                if(id != null && entities.get(index).getId().longValue() == id.longValue())
+                {
+                    return false;
+                }
+                return true;
+            }
         }
-        catch (NoResultException e)
-        {
-            // ignore
-        }
-        return state != null;
+        
+        return false;
     }
 }

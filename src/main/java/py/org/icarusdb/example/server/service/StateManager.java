@@ -16,12 +16,14 @@
  */
 package py.org.icarusdb.example.server.service;
 
+import java.io.Serializable;
 import java.util.logging.Logger;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 
+import py.org.icarusdb.example.server.model.Country;
 import py.org.icarusdb.example.server.model.State;
 
 // The @Stateless annotation eliminates the need for manual transaction demarcation
@@ -35,15 +37,40 @@ public class StateManager
     @Inject
     private EntityManager em;
 
-//    @Inject
-//    private Event<State> stateEventSrc;
 
-    public void register(State state) throws Exception
+    public Serializable persist(State entity) throws Exception
     {
-        state.setName(state.getName().trim());
+        entity.setName(entity.getName().trim());
+        entity.setCountry(em.find(Country.class, entity.getCountry().getId()));
         
-        log.info("Persisting " + state.getName());
-        em.persist(state);
-//        stateEventSrc.fire(state);
+        log.info("Persisting " + entity.getName());
+        em.persist(entity);
+        
+        return entity.getId();
+    }
+
+    public State update(State entity) throws Exception
+    {
+        entity.setName(entity.getName().trim());
+        
+        log.info("updating " + entity.getName());
+        
+        // TODO store flush mode in a [upper?] class
+        em.merge(entity);
+        //em.flush();
+        
+        return entity;
+    }
+
+    
+    public State save(State entity) throws Exception
+    {
+        if(entity.getId() == null) {
+            Serializable id = persist(entity);
+            return em.find(State.class, id);
+        } else {
+            return update(entity);
+        }
+        
     }
 }

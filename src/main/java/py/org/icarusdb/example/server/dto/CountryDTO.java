@@ -88,10 +88,6 @@ public class CountryDTO
         this.active = active;
     }
 
-    /**
-     * only for newly entities
-     * @return
-     */
     public Country toEntity()
     {
         Country entity = new Country();

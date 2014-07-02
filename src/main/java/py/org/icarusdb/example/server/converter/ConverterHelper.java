@@ -27,8 +27,10 @@ import javax.persistence.EntityManager;
 
 import py.org.icarusdb.example.server.dto.ContinentDTO;
 import py.org.icarusdb.example.server.dto.CountryDTO;
+import py.org.icarusdb.example.server.dto.StateDTO;
 import py.org.icarusdb.example.server.model.Continent;
 import py.org.icarusdb.example.server.model.Country;
+import py.org.icarusdb.example.server.model.State;
 
 /**
  * @author Betto McRose [icarus]
@@ -61,6 +63,17 @@ public class ConverterHelper
         for(int index=0; index < entities.size(); index++)
         {
             dtos.add(new CountryDTO(em.merge(entities.get(index))));
+        }
+        return dtos;
+    }
+
+    public List<StateDTO> convertStatesToDTO(List<State> entities)
+    {
+        List<StateDTO> dtos = new LinkedList<StateDTO>();
+        
+        for(int index=0; index < entities.size(); index++)
+        {
+            dtos.add(new StateDTO(em.merge(entities.get(index))));
         }
         return dtos;
     }

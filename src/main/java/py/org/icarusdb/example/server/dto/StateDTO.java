@@ -18,7 +18,8 @@
  */
 package py.org.icarusdb.example.server.dto;
 
-import py.org.icarusdb.example.server.model.Continent;
+import py.org.icarusdb.example.server.model.State;
+
 
 /**
  * @author Betto McRose [icarus]
@@ -26,23 +27,31 @@ import py.org.icarusdb.example.server.model.Continent;
  *         mcrose.dev@gmail.com
  *
  */
-public class ContinentDTO
+public class StateDTO
 {
     private Long id;
+    private CountryDTO countryDTO;
     private String name;
     private Boolean active;
-    // TODO check for hibernate solutions on relations
-//    private Set<Country> countries = new HashSet<Country>(0);
+//    private Set<City> cities = new HashSet<City>(0);
+
+    public StateDTO()
+    {
+    }
+
+    public StateDTO(CountryDTO country)
+    {
+        this.countryDTO = country;
+    }
     
-    public ContinentDTO(){ }
-    
-    public ContinentDTO(Continent entity)
+    public StateDTO(State entity)
     {
         this.id = entity.getId();
         this.name = entity.getName();
         this.active = entity.getActive();
+        /* Continent is a NOT NULL so we don't check for null vales */
+        this.countryDTO = new CountryDTO(entity.getCountry());
     }
-    
     
 
     public Long getId()
@@ -53,6 +62,16 @@ public class ContinentDTO
     public void setId(Long id)
     {
         this.id = id;
+    }
+
+    public CountryDTO getCountryDTO()
+    {
+        return this.countryDTO;
+    }
+
+    public void setCountryDTO(CountryDTO countries)
+    {
+        this.countryDTO = countries;
     }
 
     public String getName()
@@ -75,24 +94,26 @@ public class ContinentDTO
         this.active = active;
     }
 
-    public Continent toEntity()
+    public State toEntity()
     {
-        Continent entity = new Continent();
+        State entity = new State();
         entity.setId(this.getId());
         entity.setName(this.getName());
         entity.setActive(this.getActive());
         
+        entity.setCountry(this.getCountryDTO().toEntity());
+        
         return entity;
     }
 
-//    public Set<Country> getCountries()
+//    public Set<City> getCities()
 //    {
-//        return this.countries;
+//        return this.cities;
 //    }
 //
-//    public void setCountries(Set<Country> countrieses)
+//    public void setCities(Set<City> citieses)
 //    {
-//        this.countries = countrieses;
+//        this.cities = citieses;
 //    }
 
 }
