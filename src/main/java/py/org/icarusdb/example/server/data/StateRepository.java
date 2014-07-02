@@ -16,26 +16,24 @@
  */
 package py.org.icarusdb.example.server.data;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import py.org.icarusdb.commons.util.IDBProperties;
 import py.org.icarusdb.example.server.model.Continent;
 import py.org.icarusdb.example.server.model.Country;
+import py.org.icarusdb.example.server.model.Country_;
 import py.org.icarusdb.example.server.model.State;
 import py.org.icarusdb.example.server.model.State_;
 
-@ApplicationScoped
+@RequestScoped
 public class StateRepository
 {
     private CriteriaBuilder cb = null;
@@ -72,24 +70,25 @@ public class StateRepository
         return em.createQuery(criteria).getResultList();
     }
 
+    @SuppressWarnings("unchecked")
     public List<State> find(IDBProperties parameters)
     {
-        List<Predicate> predicates = new ArrayList<Predicate>();
-        
-        if(parameters.containsKey(State_.id.getName()))
-        {
-            predicates.add(cb.equal(state.get(State_.id), parameters.get(State_.id.getName())));
-        }
+        String ejbql = "select o from State o ";
+        String restrictions = "where";
+        boolean addAnd = false;
         
         String name = (String) parameters.get(State_.name.getName());
         if(name != null && !name.trim().isEmpty())
         {
-            predicates.add(cb.equal(state.get(State_.name), parameters.get(State_.name.getName())));
+            restrictions += " lower(o.name) like '%" + name.toLowerCase() + "%'";
+            addAnd = true;
         }
         
         if(parameters.containsKey(State_.active.getName()))
         {
-            predicates.add(cb.equal(state.get(State_.active), parameters.get(State_.active.getName())));
+            if (addAnd) restrictions += " and ";
+            restrictions += " o.active = " + parameters.get(State_.active.getName());
+            addAnd = true;
         }
         
         if(parameters.containsKey(State_.country.getName()))
@@ -101,40 +100,33 @@ public class StateRepository
                 id = new Long(country.toString().trim());
             } else {
                 // FIXME use codehous deserializer
-                id = ((Continent)country).getId();
+                id = ((Country)country).getId();
             }
             
-            country = em.find(Country.class, id);
-            
-            predicates.add(cb.equal(state.get(State_.country), country));
+            if (addAnd) restrictions += " and ";
+            restrictions += " o.country.id = " + id;
+            addAnd = true;
         }
         
-
-        Iterator<Object> iterator = parameters.keySet().iterator();
-
-        while (iterator.hasNext())
+        if(parameters.containsKey(Country_.continent.getName()))
         {
-            final Object key = iterator.next();
-            final Object value = parameters.get(key);
+            Long id = null;
             
-            System.out.println("key  : " + key);
-            System.out.println("value: " + value);
-
-//            if ((key != null) && (value != null))
-//            {
-//                predicates.add(cb.equal(state.get(key.toString()), value));
-//            }
+            Object continent = parameters.get(Country_.continent.getName());
+            if(continent instanceof Number) {
+                id = new Long(continent.toString().trim());
+            } else {
+                // FIXME use codehous deserializer
+                id = ((Continent)continent).getId();
+            }
+            
+            if (addAnd) restrictions += " and ";
+            restrictions += " o.country.continent.id = " + id;
+            addAnd = true;
         }
-
-        criteria
-            .select(state)
-            .where(
-                    cb.and(predicates.toArray(new Predicate[predicates.size()]))
-            )
-            .orderBy(
-                    cb.asc(state.get(State_.name))
-            );
         
-        return em.createQuery(criteria).getResultList();
+        if(restrictions.length() == 5) restrictions = "";
+        
+        return em.createQuery(ejbql + restrictions).getResultList();
     }
 }

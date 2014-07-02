@@ -129,10 +129,10 @@ public class StateResourceRESTService extends ResourceRESTService
             // Validates State using bean validation
             validateStateDTO(dto);
 
-            State entity = manager.save(dto.toEntity());
+            /*State entity = */manager.save(dto.toEntity());
 
             // Create an "ok" response
-            builder = Response.ok().entity(new StateDTO(entity));
+            builder = Response.ok();//.entity(new StateDTO(entity));
         }
         catch (ConstraintViolationException ce)
         {
