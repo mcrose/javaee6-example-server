@@ -28,7 +28,6 @@ import javax.persistence.criteria.Root;
 import py.org.icarusdb.example.server.model.Continent;
 import py.org.icarusdb.example.server.model.Continent_;
 
-//@ApplicationScoped
 @RequestScoped
 public class ContinentRepository
 {
