@@ -24,7 +24,6 @@ import java.util.Set;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.persistence.NoResultException;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
@@ -38,7 +37,10 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import py.org.icarusdb.commons.util.IDBProperties;
+import py.org.icarusdb.example.server.converter.ConverterHelper;
 import py.org.icarusdb.example.server.data.CityRepository;
+import py.org.icarusdb.example.server.dto.CityDTO;
 import py.org.icarusdb.example.server.model.City;
 import py.org.icarusdb.example.server.service.CityManager;
 
@@ -56,13 +58,16 @@ public class CityResourceRESTService extends ResourceRESTService
     private CityRepository repository;
 
     @Inject
-    CityManager registration;
+    CityManager manager;
+
+    @Inject
+    ConverterHelper dtoConverter;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<City> listAllCitys()
+    public List<CityDTO> listAllCities()
     {
-        return repository.findAllOrderedByName();
+        return dtoConverter.convertCitiesToDTO(repository.findAllOrderedByName());
     }
 
     @GET
@@ -78,15 +83,43 @@ public class CityResourceRESTService extends ResourceRESTService
         return city;
     }
 
+    @POST
+    @Path("/search")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<CityDTO> search(IDBProperties parameters)
+    {
+        if(parameters == null || parameters.isEmpty())
+        {
+            // FIXME throw the correct exception
+            // TODO create exception
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
+        
+        try
+        {
+            return dtoConverter.convertCitiesToDTO(repository.find(parameters));
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            // FIXME throw the correct exception
+            // TODO create exception
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
+        
+    }
+
     /**
      * Creates a new city from the values provided. Performs validation,
      * and will return a JAX-RS response with either 200 ok, or with a map of
      * fields, and related errors.
      */
     @POST
+    @Path("/save")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createCity(City city)
+    public Response save(CityDTO dto)
     {
 
         Response.ResponseBuilder builder = null;
@@ -94,9 +127,9 @@ public class CityResourceRESTService extends ResourceRESTService
         try
         {
             // Validates city using bean validation
-            validateCity(city);
+            validateCity(dto);
 
-            registration.register(city);
+            manager.save(dto.toEntity());
 
             // Create an "ok" response
             builder = Response.ok();
@@ -135,17 +168,17 @@ public class CityResourceRESTService extends ResourceRESTService
      * interpreted separately.
      * </p>
      * 
-     * @param city
+     * @param dto
      *            City to be validated
      * @throws ConstraintViolationException
      *             If Bean Validation errors exist
      * @throws ValidationException
      *             If city with the same name already exists
      */
-    private void validateCity(City city) throws ConstraintViolationException, ValidationException
+    private void validateCity(CityDTO dto) throws ConstraintViolationException, ValidationException
     {
         // Create a bean validator and check for issues.
-        Set<ConstraintViolation<City>> violations = validator.validate(city);
+        Set<ConstraintViolation<CityDTO>> violations = validator.validate(dto);
 
         if (!violations.isEmpty())
         {
@@ -153,7 +186,7 @@ public class CityResourceRESTService extends ResourceRESTService
         }
 
         // Check the uniqueness of the name address
-        if (nameAlreadyExists(city.getName()))
+        if (nameAlreadyExists(dto.getName(), dto.getId()))
         {
             throw new ValidationException("Unique Name Violation");
         }
@@ -167,19 +200,27 @@ public class CityResourceRESTService extends ResourceRESTService
      * 
      * @param name
      *            The name to check
+     * @param long1 
      * @return True if the name already exists, and false otherwise
      */
-    public boolean nameAlreadyExists(String name)
+    public boolean nameAlreadyExists(String name, Long id)
     {
-        City city = null;
-        try
+        List<City> entities = repository.findByName(name.trim());
+        
+        if (entities.isEmpty()) return false;
+        
+        for(int index = 0; index < entities.size(); index++)
         {
-            city = repository.findByName(name.trim());
+            if(name.trim().equalsIgnoreCase(entities.get(index).getName()))
+            {
+                if(id != null && entities.get(index).getId().longValue() == id.longValue())
+                {
+                    return false;
+                }
+                return true;
+            }
         }
-        catch (NoResultException e)
-        {
-            // ignore
-        }
-        return city != null;
+        
+        return false;
     }
 }

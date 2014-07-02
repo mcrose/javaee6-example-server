@@ -16,6 +16,7 @@
  */
 package py.org.icarusdb.example.server.service;
 
+import java.io.Serializable;
 import java.util.logging.Logger;
 
 import javax.ejb.Stateless;
@@ -23,6 +24,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 
 import py.org.icarusdb.example.server.model.City;
+import py.org.icarusdb.example.server.model.State;
 
 // The @Stateless annotation eliminates the need for manual transaction demarcation
 @Stateless
@@ -35,15 +37,39 @@ public class CityManager
     @Inject
     private EntityManager em;
 
-//    @Inject
-//    private Event<City> cityEventSrc;
-
-    public void register(City city) throws Exception
+    public Serializable persist(City entity) throws Exception
     {
-        city.setName(city.getName().trim());
+        entity.setName(entity.getName().trim());
+        entity.setState(em.find(State.class, entity.getState().getId()));
         
-        log.info("Persisting " + city.getName());
-        em.persist(city);
-//        cityEventSrc.fire(city);
+        log.info("Persisting " + entity.getName());
+        em.persist(entity);
+        
+        return entity.getId();
+    }
+
+    public City update(City entity) throws Exception
+    {
+        entity.setName(entity.getName().trim());
+        
+        log.info("updating " + entity.getName());
+        
+        // TODO store flush mode in a [upper?] class
+        em.merge(entity);
+        //em.flush();
+        
+        return entity;
+    }
+
+    
+    public City save(City entity) throws Exception
+    {
+        if(entity.getId() == null) {
+            Serializable id = persist(entity);
+            return em.find(City.class, id);
+        } else {
+            return update(entity);
+        }
+        
     }
 }

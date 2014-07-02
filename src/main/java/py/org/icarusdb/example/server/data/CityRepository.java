@@ -18,7 +18,6 @@ package py.org.icarusdb.example.server.data;
 
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -26,8 +25,14 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
+import py.org.icarusdb.commons.util.IDBProperties;
 import py.org.icarusdb.example.server.model.City;
 import py.org.icarusdb.example.server.model.City_;
+import py.org.icarusdb.example.server.model.Continent;
+import py.org.icarusdb.example.server.model.Country;
+import py.org.icarusdb.example.server.model.Country_;
+import py.org.icarusdb.example.server.model.State;
+import py.org.icarusdb.example.server.model.State_;
 
 @RequestScoped
 public class CityRepository
@@ -41,14 +46,14 @@ public class CityRepository
         return em.find(City.class, id);
     }
 
-    public City findByName(String name)
+    public List<City> findByName(String name)
     {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<City> criteria = cb.createQuery(City.class);
         Root<City> city = criteria.from(City.class);
         criteria.select(city).where(cb.equal(city.get(City_.name), name));
         
-        return em.createQuery(criteria).getSingleResult();
+        return em.createQuery(criteria).getResultList();
     }
 
     public List<City> findAllOrderedByName()
@@ -59,5 +64,82 @@ public class CityRepository
         criteria.select(city).orderBy(cb.asc(city.get(City_.name)));
         
         return em.createQuery(criteria).getResultList();
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<City> find(IDBProperties parameters)
+    {
+        String ejbql = "select o from City o ";
+        String restrictions = "where";
+        boolean addAnd = false;
+        
+        String name = (String) parameters.get(State_.name.getName());
+        if(name != null && !name.trim().isEmpty())
+        {
+            restrictions += " lower(o.name) like '%" + name.toLowerCase() + "%'";
+            addAnd = true;
+        }
+        
+        if(parameters.containsKey(State_.active.getName()))
+        {
+            if (addAnd) restrictions += " and ";
+            restrictions += " o.active = " + parameters.get(State_.active.getName());
+            addAnd = true;
+        }
+        
+        if(parameters.containsKey(City_.state.getName()))
+        {
+            Long id = null;
+            
+            Object state = parameters.get(City_.state.getName());
+            if(state instanceof Number) {
+                id = new Long(state.toString().trim());
+            } else {
+                // FIXME use codehous deserializer
+                id = ((State)state).getId();
+            }
+            
+            if (addAnd) restrictions += " and ";
+            restrictions += " o.state.id = " + id;
+            addAnd = true;
+        }
+        
+        if(parameters.containsKey(State_.country.getName()))
+        {
+            Long id = null;
+            
+            Object country = parameters.get(State_.country.getName());
+            if(country instanceof Number) {
+                id = new Long(country.toString().trim());
+            } else {
+                // FIXME use codehous deserializer
+                id = ((Country)country).getId();
+            }
+            
+            if (addAnd) restrictions += " and ";
+            restrictions += " o.state.country.id = " + id;
+            addAnd = true;
+        }
+        
+        if(parameters.containsKey(Country_.continent.getName()))
+        {
+            Long id = null;
+            
+            Object continent = parameters.get(Country_.continent.getName());
+            if(continent instanceof Number) {
+                id = new Long(continent.toString().trim());
+            } else {
+                // FIXME use codehous deserializer
+                id = ((Continent)continent).getId();
+            }
+            
+            if (addAnd) restrictions += " and ";
+            restrictions += " o.state.country.continent.id = " + id;
+            addAnd = true;
+        }
+        
+        if(restrictions.length() == 5) restrictions = "";
+        
+        return em.createQuery(ejbql + restrictions).getResultList();
     }
 }

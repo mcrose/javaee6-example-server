@@ -18,8 +18,7 @@
  */
 package py.org.icarusdb.example.server.dto;
 
-import py.org.icarusdb.example.server.model.State;
-
+import py.org.icarusdb.example.server.model.City;
 
 /**
  * @author Betto McRose [icarus]
@@ -27,32 +26,29 @@ import py.org.icarusdb.example.server.model.State;
  *         mcrose.dev@gmail.com
  *
  */
-public class StateDTO
+public class CityDTO
 {
     private Long id;
-    private CountryDTO countryDTO;
+    private StateDTO stateDTO;
     private String name;
     private Boolean active;
-//    private Set<City> cities = new HashSet<City>(0);
+//    private Set<Neighborhood> neighborhoods = new HashSet<Neighborhood>(0);
 
-    public StateDTO()
-    {
-    }
+    public CityDTO(){}
 
-    public StateDTO(CountryDTO country)
+    public CityDTO(StateDTO state)
     {
-        this.countryDTO = country;
+        this.stateDTO = state;
     }
     
-    public StateDTO(State entity)
+    public CityDTO(City entity)
     {
         this.id = entity.getId();
         this.name = entity.getName();
         this.active = entity.getActive();
-        /* Country is a NOT NULL so we don't check for null vales */
-        this.countryDTO = new CountryDTO(entity.getCountry());
+        /* State is a NOT NULL so we don't check for null vales */
+        this.stateDTO = new StateDTO(entity.getState());
     }
-    
 
     public Long getId()
     {
@@ -64,14 +60,14 @@ public class StateDTO
         this.id = id;
     }
 
-    public CountryDTO getCountryDTO()
+    public StateDTO getStateDTO()
     {
-        return this.countryDTO;
+        return this.stateDTO;
     }
 
-    public void setCountryDTO(CountryDTO countries)
+    public void setStateDTO(StateDTO stateDTO)
     {
-        this.countryDTO = countries;
+        this.stateDTO = stateDTO;
     }
 
     public String getName()
@@ -94,26 +90,26 @@ public class StateDTO
         this.active = active;
     }
 
-    public State toEntity()
+    public City toEntity()
     {
-        State entity = new State();
+        City entity = new City();
         entity.setId(this.getId());
         entity.setName(this.getName());
         entity.setActive(this.getActive());
         
-        entity.setCountry(this.getCountryDTO().toEntity());
+        entity.setState(this.getStateDTO().toEntity());
         
         return entity;
     }
 
-//    public Set<City> getCities()
+    //    public Set<Neighborhood> getNeighborhoods()
 //    {
-//        return this.cities;
+//        return this.neighborhoods;
 //    }
 //
-//    public void setCities(Set<City> citieses)
+//    public void setNeighborhoods(Set<Neighborhood> neighborhoodses)
 //    {
-//        this.cities = citieses;
+//        this.neighborhoods = neighborhoodses;
 //    }
 
 }
