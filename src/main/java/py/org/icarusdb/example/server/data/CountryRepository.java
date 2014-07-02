@@ -148,4 +148,21 @@ public class CountryRepository
         
         return em.createQuery(criteria).getResultList();
     }
+    
+    public List<Country> findActives()
+    {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Country> criteria = cb.createQuery(Country.class);
+        Root<Country> continent = criteria.from(Country.class);
+        
+        criteria
+            .select(continent)
+            .where(
+                    cb.equal(continent.get(Country_.active), Boolean.TRUE)
+            );
+        
+        return em.createQuery(criteria).getResultList();
+    }
+
+    
 }

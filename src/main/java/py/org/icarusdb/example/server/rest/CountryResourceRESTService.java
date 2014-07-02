@@ -83,6 +83,14 @@ public class CountryResourceRESTService extends ResourceRESTService
     }
 
     @GET
+    @Path("/actives")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<CountryDTO> listAllActiveContinentDTOs()
+    {
+        return dtoConverter.convertCountriesToDTO(repository.findActives());
+    }
+
+    @GET
     @Path("/{id:[0-9][0-9]*}")
     @Produces(MediaType.APPLICATION_JSON)
     public Country lookupCountryById(@PathParam("id") long id)
