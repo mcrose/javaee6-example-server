@@ -89,7 +89,8 @@ public class CountryRepository
             predicates.add(cb.equal(country.get(Country_.id), parameters.get(Country_.id.getName())));
         }
         
-        if(parameters.containsKey(Country_.name.getName()))
+        String name = (String) parameters.get(Country_.name.getName());
+        if(name != null && !name.trim().isEmpty())
         {
             predicates.add(cb.equal(country.get(Country_.name), parameters.get(Country_.name.getName())));
         }
