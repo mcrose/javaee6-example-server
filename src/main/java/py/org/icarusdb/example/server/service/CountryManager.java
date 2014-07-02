@@ -23,6 +23,7 @@ import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 
+import py.org.icarusdb.example.server.model.Continent;
 import py.org.icarusdb.example.server.model.Country;
 
 // The @Stateless annotation eliminates the need for manual transaction demarcation
@@ -39,6 +40,7 @@ public class CountryManager
     public Serializable persist(Country entity) throws Exception
     {
         entity.setName(entity.getName().trim());
+        entity.setContinent(em.find(Continent.class, entity.getContinent().getId()));
         
         log.info("Persisting " + entity.getName());
         em.persist(entity);
@@ -72,6 +74,8 @@ public class CountryManager
 
     public String remove(Country entity) throws Exception
     {
+        log.info("removing " + entity.getName());
+        
         em.remove(em.find(Country.class, entity.getId()));
         
         return "removed";

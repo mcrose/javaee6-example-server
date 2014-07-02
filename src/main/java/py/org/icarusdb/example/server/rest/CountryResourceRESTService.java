@@ -241,7 +241,7 @@ public class CountryResourceRESTService extends ResourceRESTService
     @Path("/remove")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response delete(CountryDTO dto)
+    public Response remove(CountryDTO dto)
     {
 
         Response.ResponseBuilder builder = null;
