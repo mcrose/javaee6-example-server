@@ -71,6 +71,14 @@ public class StateResourceRESTService extends ResourceRESTService
     }
 
     @GET
+    @Path("/actives")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<StateDTO> listAllActiveContinentDTOs()
+    {
+        return dtoConverter.convertStatesToDTO(repository.findActives());
+    }
+
+    @GET
     @Path("/{id:[0-9][0-9]*}")
     @Produces(MediaType.APPLICATION_JSON)
     public State lookupStateById(@PathParam("id") long id)

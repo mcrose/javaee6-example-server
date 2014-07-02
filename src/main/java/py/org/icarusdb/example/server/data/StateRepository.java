@@ -129,4 +129,19 @@ public class StateRepository
         
         return em.createQuery(ejbql + restrictions).getResultList();
     }
+
+    public List<State> findActives()
+    {
+        cb = em.getCriteriaBuilder();
+        criteria = cb.createQuery(State.class);
+        state = criteria.from(State.class);
+        
+        criteria
+            .select(state)
+            .where(
+                    cb.equal(state.get(State_.active), Boolean.TRUE)
+            );
+        
+        return em.createQuery(criteria).getResultList();
+    }
 }

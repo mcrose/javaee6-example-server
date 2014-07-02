@@ -151,14 +151,14 @@ public class CountryRepository
     
     public List<Country> findActives()
     {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<Country> criteria = cb.createQuery(Country.class);
-        Root<Country> continent = criteria.from(Country.class);
+        cb = em.getCriteriaBuilder();
+        criteria = cb.createQuery(Country.class);
+        country = criteria.from(Country.class);
         
         criteria
-            .select(continent)
+            .select(country)
             .where(
-                    cb.equal(continent.get(Country_.active), Boolean.TRUE)
+                    cb.equal(country.get(Country_.active), Boolean.TRUE)
             );
         
         return em.createQuery(criteria).getResultList();
