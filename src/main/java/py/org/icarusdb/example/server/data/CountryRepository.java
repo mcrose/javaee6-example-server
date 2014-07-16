@@ -26,6 +26,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.xml.bind.JAXBException;
@@ -92,7 +93,9 @@ public class CountryRepository
         String name = (String) parameters.get(Country_.name.getName());
         if(name != null && !name.trim().isEmpty())
         {
-            predicates.add(cb.equal(country.get(Country_.name), parameters.get(Country_.name.getName())));
+            Expression<String> field = cb.lower(country.get(Country_.name));
+            Expression<String> value = cb.lower(cb.literal("%"+name+"%"));
+            predicates.add(cb.like(field, value));
         }
         
         if(parameters.containsKey(Country_.active.getName()))
